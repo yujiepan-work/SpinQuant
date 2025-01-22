@@ -1,3 +1,13 @@
+# Fork note:
+
+- Install the env as explain below.
+- `pip install lm-eval` (e.g., 0.4.7)
+- `scripts/yujie_1_optimize_rotation.bash` (~1 hr)
+- `scripts/yujie_2_eval.sh`
+
+---
+
+
 # SpinQuant
 
 This repository contains the code of SpinQuant introduced in our work: "[SpinQuant: LLM Quantization with Learned Rotations](https://arxiv.org/pdf/2405.16406)"

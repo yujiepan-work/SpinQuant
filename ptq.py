@@ -74,7 +74,23 @@ def train() -> None:
     )
 
     dataset_ppl = eval_utils.evaluator(model, testloader, utils.DEV, ptq_args)
-    log.info("wiki2 ppl is: {}".format(dataset_ppl))
+    log.info("(paper evaluation) wiki2 ppl is: {}".format(dataset_ppl))
+
+    # (yujie) do other evaluation tasks using lm_eval
+    from lm_eval_wrapper import run_lm_eval_hf
+    tasks = ['wikitext']
+    tokenizer = transformers.AutoTokenizer.from_pretrained(
+        model_args.input_model)
+
+    model.cuda().eval()
+    model.config.use_cache = True
+    results = run_lm_eval_hf(
+        model=model, tokenizer=tokenizer, tasks=tasks, num_fewshot=0, limit=None,
+        max_length=2048,
+        batch_size=1, device='cuda',
+    )
+    print('(lm-eval evaluation)', results['results'])
+
     dist.barrier()
 
 
