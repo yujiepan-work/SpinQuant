@@ -4,7 +4,7 @@ mkdir -p $save_folder/rotation
 mkdir -p $save_folder/logging
 mkdir -p $save_folder/output
 
-torchrun --nnodes=1 --nproc_per_node=1 --rdzv-backend=c10d -rdzv-endpoint=localhost:0 \
+torchrun --nnodes=1 --nproc_per_node=1 --rdzv-backend=c10d --rdzv-endpoint=localhost:0 \
     optimize_rotation.py \
     --input_model $model_id \
     --output_rotation_path "$save_folder/rotation/" \

@@ -1,7 +1,7 @@
 model_id="meta-llama/Llama-3.2-1B"
 save_folder=logs/$model_id-300steps
 
-torchrun --nnodes=1 --nproc_per_node=1 --rdzv-backend=c10d -rdzv-endpoint=localhost:0 \
+torchrun --nnodes=1 --nproc_per_node=1 --rdzv-backend=c10d --rdzv-endpoint=localhost:0 \
     ptq.py \
     --input_model $model_id \
     --do_train False \
