@@ -60,10 +60,11 @@ def write_model_llama(
 
     model_shard_dicts = [{} for _ in range(num_shards)]
     for layer_i in range(n_layers):
-        ## store the same in every shard
+        # store the same in every shard
         for shard_i in range(num_shards):
             model_shard_dicts[shard_i][f"layers.{layer_i}.attention_norm.weight"] = (
-                hf_state_dict[f"model.layers.{layer_i}.input_layernorm.weight"].clone()
+                hf_state_dict[f"model.layers.{layer_i}.input_layernorm.weight"].clone(
+                )
             )
 
         for shard_i in range(num_shards):
@@ -73,7 +74,7 @@ def write_model_llama(
                 ].clone()
             )
 
-        ### int weight
+        # int weight
         self_attn_q_proj_weight = hf_state_dict[
             f"model.layers.{layer_i}.self_attn.q_proj.module.int_weight"
         ]
@@ -90,7 +91,8 @@ def write_model_llama(
         self_attn_k_proj_weight = hf_state_dict[
             f"model.layers.{layer_i}.self_attn.k_proj.module.int_weight"
         ]
-        self_attn_k_proj_weight = un_permute(self_attn_k_proj_weight, is_query=False)
+        self_attn_k_proj_weight = un_permute(
+            self_attn_k_proj_weight, is_query=False)
         list_self_attn_k_proj_weight = shard_tensor(
             self_attn_k_proj_weight, 0, num_shards
         )
@@ -127,7 +129,8 @@ def write_model_llama(
         mlp_gate_proj_weight = hf_state_dict[
             f"model.layers.{layer_i}.mlp.gate_proj.module.int_weight"
         ]
-        list_mlp_gate_proj_weight = shard_tensor(mlp_gate_proj_weight, 0, num_shards)
+        list_mlp_gate_proj_weight = shard_tensor(
+            mlp_gate_proj_weight, 0, num_shards)
         for shard_i in range(num_shards):
             model_shard_dicts[shard_i][f"layers.{layer_i}.feed_forward.w1.weight"] = (
                 list_mlp_gate_proj_weight[shard_i].clone().to(torch.int8)
@@ -137,7 +140,8 @@ def write_model_llama(
         mlp_down_proj_weight = hf_state_dict[
             f"model.layers.{layer_i}.mlp.down_proj.module.int_weight"
         ]
-        list_mlp_down_proj_weight = shard_tensor(mlp_down_proj_weight, 1, num_shards)
+        list_mlp_down_proj_weight = shard_tensor(
+            mlp_down_proj_weight, 1, num_shards)
         for shard_i in range(num_shards):
             model_shard_dicts[shard_i][f"layers.{layer_i}.feed_forward.w2.weight"] = (
                 list_mlp_down_proj_weight[shard_i].clone().to(torch.int8)
@@ -147,13 +151,14 @@ def write_model_llama(
         mlp_up_proj_weight = hf_state_dict[
             f"model.layers.{layer_i}.mlp.up_proj.module.int_weight"
         ]
-        list_mlp_up_proj_weight = shard_tensor(mlp_up_proj_weight, 0, num_shards)
+        list_mlp_up_proj_weight = shard_tensor(
+            mlp_up_proj_weight, 0, num_shards)
         for shard_i in range(num_shards):
             model_shard_dicts[shard_i][f"layers.{layer_i}.feed_forward.w3.weight"] = (
                 list_mlp_up_proj_weight[shard_i].clone().to(torch.int8)
             )
 
-        ### scale
+        # scale
         self_attn_q_proj_weight = hf_state_dict[
             f"model.layers.{layer_i}.self_attn.q_proj.module.scale"
         ]
@@ -170,7 +175,8 @@ def write_model_llama(
         self_attn_k_proj_weight = hf_state_dict[
             f"model.layers.{layer_i}.self_attn.k_proj.module.scale"
         ]
-        self_attn_k_proj_weight = un_permute(self_attn_k_proj_weight, is_query=False)
+        self_attn_k_proj_weight = un_permute(
+            self_attn_k_proj_weight, is_query=False)
         list_self_attn_k_proj_weight = shard_tensor(
             self_attn_k_proj_weight, 0, num_shards
         )
@@ -207,7 +213,8 @@ def write_model_llama(
         mlp_gate_proj_weight = hf_state_dict[
             f"model.layers.{layer_i}.mlp.gate_proj.module.scale"
         ]
-        list_mlp_gate_proj_weight = shard_tensor(mlp_gate_proj_weight, 0, num_shards)
+        list_mlp_gate_proj_weight = shard_tensor(
+            mlp_gate_proj_weight, 0, num_shards)
         for shard_i in range(num_shards):
             model_shard_dicts[shard_i][f"layers.{layer_i}.feed_forward.w1.scale"] = (
                 list_mlp_gate_proj_weight[shard_i].clone()
@@ -217,7 +224,8 @@ def write_model_llama(
         mlp_down_proj_weight = hf_state_dict[
             f"model.layers.{layer_i}.mlp.down_proj.module.scale"
         ]
-        list_mlp_down_proj_weight = shard_tensor(mlp_down_proj_weight, 1, num_shards)
+        list_mlp_down_proj_weight = shard_tensor(
+            mlp_down_proj_weight, 1, num_shards)
         for shard_i in range(num_shards):
             model_shard_dicts[shard_i][f"layers.{layer_i}.feed_forward.w2.scale"] = (
                 list_mlp_down_proj_weight[shard_i].clone()
@@ -227,7 +235,8 @@ def write_model_llama(
         mlp_up_proj_weight = hf_state_dict[
             f"model.layers.{layer_i}.mlp.up_proj.module.scale"
         ]
-        list_mlp_up_proj_weight = shard_tensor(mlp_up_proj_weight, 0, num_shards)
+        list_mlp_up_proj_weight = shard_tensor(
+            mlp_up_proj_weight, 0, num_shards)
         for shard_i in range(num_shards):
             model_shard_dicts[shard_i][f"layers.{layer_i}.feed_forward.w3.scale"] = (
                 list_mlp_up_proj_weight[shard_i].clone()
@@ -290,7 +299,8 @@ def sanitize_checkpoint_from_spinquant(
 
     for old_key, new_key in keys_to_rename:
         old_val = checkpoint.pop(old_key)
-        checkpoint[new_key] = old_val if group_size == -1 else old_val[:, ::group_size]
+        checkpoint[new_key] = old_val if group_size == - \
+            1 else old_val[:, ::group_size]
     for k in keys_to_remove:
         checkpoint.pop(k)
     for k, v in checkpoint.items():

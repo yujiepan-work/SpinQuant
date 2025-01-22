@@ -105,14 +105,16 @@ def _prepare_4d_causal_attention_mask_with_cache_position(
         causal_mask *= torch.arange(
             target_length, device=device
         ) > cache_position.reshape(-1, 1)
-        causal_mask = causal_mask[None, None, :, :].expand(batch_size, 1, -1, -1)
+        causal_mask = causal_mask[None, None,
+                                  :, :].expand(batch_size, 1, -1, -1)
         if attention_mask is not None:
             causal_mask = (
                 causal_mask.clone()
             )  # copy to contiguous memory for in-place edit
             mask_length = attention_mask.shape[-1]
             padding_mask = (
-                causal_mask[:, :, :, :mask_length] + attention_mask[:, None, None, :]
+                causal_mask[:, :, :, :mask_length] +
+                attention_mask[:, None, None, :]
             )
             padding_mask = padding_mask == 0
             causal_mask[:, :, :, :mask_length] = causal_mask[
@@ -135,7 +137,8 @@ class LlamaRMSNorm(nn.Module):
         input_dtype = hidden_states.dtype
         hidden_states = hidden_states.to(torch.float32)
         variance = hidden_states.pow(2).mean(-1, keepdim=True)
-        hidden_states = hidden_states * torch.rsqrt(variance + self.variance_epsilon)
+        hidden_states = hidden_states * \
+            torch.rsqrt(variance + self.variance_epsilon)
         return self.weight * hidden_states.to(input_dtype)
 
     def extra_repr(self):
@@ -214,7 +217,8 @@ class LlamaRotaryEmbedding(nn.Module):
             seq_len < self.original_max_seq_len
             and self.max_seq_len_cached > self.original_max_seq_len
         ):  # reset
-            self.register_buffer("inv_freq", self.original_inv_freq, persistent=False)
+            self.register_buffer(
+                "inv_freq", self.original_inv_freq, persistent=False)
             self.max_seq_len_cached = self.original_max_seq_len
 
     @torch.no_grad()
@@ -224,7 +228,8 @@ class LlamaRotaryEmbedding(nn.Module):
 
         # Core RoPE block
         inv_freq_expanded = (
-            self.inv_freq[None, :, None].float().expand(position_ids.shape[0], -1, 1)
+            self.inv_freq[None, :, None].float().expand(
+                position_ids.shape[0], -1, 1)
         )
         position_ids_expanded = position_ids[:, None, :].float()
         # Force float32 (see https://github.com/huggingface/transformers/pull/29285)
@@ -277,7 +282,7 @@ class LlamaDynamicNTKScalingRotaryEmbedding(LlamaRotaryEmbedding):
 def rotate_half(x):
     """Rotates half the hidden dims of the input."""
     x1 = x[..., : x.shape[-1] // 2]
-    x2 = x[..., x.shape[-1] // 2 :]
+    x2 = x[..., x.shape[-1] // 2:]
     return torch.cat((-x2, x1), dim=-1)
 
 
@@ -383,7 +388,8 @@ class LlamaAttention(nn.Module):
         self.attention_dropout = config.attention_dropout
         self.hidden_size = config.hidden_size
         self.num_heads = config.num_attention_heads
-        self.head_dim = getattr(config, "head_dim", self.hidden_size // self.num_heads)
+        self.head_dim = getattr(
+            config, "head_dim", self.hidden_size // self.num_heads)
         self.num_key_value_heads = config.num_key_value_heads
         self.num_key_value_groups = self.num_heads // self.num_key_value_heads
         self.max_position_embeddings = config.max_position_embeddings
@@ -487,7 +493,8 @@ class LlamaAttention(nn.Module):
 
         if past_key_value is not None:
             # sin and cos are specific to RoPE models; cache_position needed for the static cache
-            cache_kwargs = {"sin": sin, "cos": cos, "cache_position": cache_position}
+            cache_kwargs = {"sin": sin, "cos": cos,
+                            "cache_position": cache_position}
             key_states, value_states = past_key_value.update(
                 key_states, value_states, self.layer_idx, cache_kwargs
             )
@@ -535,7 +542,8 @@ class LlamaAttention(nn.Module):
         #         ]
         #     )
         # else:
-        attn_output = self.o_proj(attn_output, R1, R2=self.R2.weight, transpose=True)
+        attn_output = self.o_proj(
+            attn_output, R1, R2=self.R2.weight, transpose=True)
 
         if not output_attentions:
             attn_weights = None
@@ -615,7 +623,8 @@ class LlamaFlashAttention2(LlamaAttention):
 
         if past_key_value is not None:
             # sin and cos are specific to RoPE models; cache_position needed for the static cache
-            cache_kwargs = {"sin": sin, "cos": cos, "cache_position": cache_position}
+            cache_kwargs = {"sin": sin, "cos": cos,
+                            "cache_position": cache_position}
             key_states, value_states = past_key_value.update(
                 key_states, value_states, self.layer_idx, cache_kwargs
             )
@@ -668,7 +677,8 @@ class LlamaFlashAttention2(LlamaAttention):
         )
 
         attn_output = attn_output.reshape(bsz, q_len, -1).contiguous()
-        attn_output = self.o_proj(attn_output, R1, R2=self.R2.weight, transpose=True)
+        attn_output = self.o_proj(
+            attn_output, R1, R2=self.R2.weight, transpose=True)
 
         if not output_attentions:
             attn_weights = None
@@ -748,7 +758,8 @@ class LlamaSdpaAttention(LlamaAttention):
 
         if past_key_value is not None:
             # sin and cos are specific to RoPE models; cache_position needed for the static cache
-            cache_kwargs = {"sin": sin, "cos": cos, "cache_position": cache_position}
+            cache_kwargs = {"sin": sin, "cos": cos,
+                            "cache_position": cache_position}
             key_states, value_states = past_key_value.update(
                 key_states, value_states, self.layer_idx, cache_kwargs
             )
@@ -783,7 +794,8 @@ class LlamaSdpaAttention(LlamaAttention):
         attn_output = attn_output.transpose(1, 2).contiguous()
         attn_output = attn_output.view(bsz, q_len, -1)
 
-        attn_output = self.o_proj(attn_output, R1, R2=self.R2.weight, transpose=True)
+        attn_output = self.o_proj(
+            attn_output, R1, R2=self.R2.weight, transpose=True)
 
         return attn_output, None, past_key_value
 
@@ -805,7 +817,8 @@ class LlamaDecoderLayer(nn.Module):
         )
 
         self.mlp = LlamaMLP(config)
-        self.input_layernorm = LlamaRMSNorm(config.hidden_size, eps=config.rms_norm_eps)
+        self.input_layernorm = LlamaRMSNorm(
+            config.hidden_size, eps=config.rms_norm_eps)
         self.post_attention_layernorm = LlamaRMSNorm(
             config.hidden_size, eps=config.rms_norm_eps
         )
@@ -825,7 +838,8 @@ class LlamaDecoderLayer(nn.Module):
         R1=None,
         **kwargs,
     ) -> Tuple[
-        torch.FloatTensor, Optional[Tuple[torch.FloatTensor, torch.FloatTensor]]
+        torch.FloatTensor, Optional[Tuple[torch.FloatTensor,
+                                          torch.FloatTensor]]
     ]:
         """
         Args:
@@ -1050,7 +1064,8 @@ class LlamaModel(LlamaPreTrainedModel):
         input_ids: torch.LongTensor = None,
         attention_mask: Optional[torch.Tensor] = None,
         position_ids: Optional[torch.LongTensor] = None,
-        past_key_values: Optional[Union[Cache, List[torch.FloatTensor]]] = None,
+        past_key_values: Optional[Union[Cache,
+                                        List[torch.FloatTensor]]] = None,
         inputs_embeds: Optional[torch.FloatTensor] = None,
         use_cache: Optional[bool] = None,
         output_attentions: Optional[bool] = None,
@@ -1095,7 +1110,8 @@ class LlamaModel(LlamaPreTrainedModel):
 
         return_legacy_cache = False
         if (
-            use_cache and not isinstance(past_key_values, Cache) and not self.training
+            use_cache and not isinstance(
+                past_key_values, Cache) and not self.training
         ):  # kept for BC (non `Cache` `past_key_values` inputs)
             return_legacy_cache = True
             past_key_values = DynamicCache.from_legacy_cache(past_key_values)
@@ -1276,7 +1292,8 @@ class LlamaForCausalLM(LlamaPreTrainedModel):
         super().__init__(config)
         self.model = LlamaModel(config)
         self.vocab_size = config.vocab_size
-        self.lm_head = nn.Linear(config.hidden_size, config.vocab_size, bias=False)
+        self.lm_head = nn.Linear(
+            config.hidden_size, config.vocab_size, bias=False)
 
         # Initialize weights and apply final processing
         self.post_init()
@@ -1308,7 +1325,8 @@ class LlamaForCausalLM(LlamaPreTrainedModel):
         input_ids: torch.LongTensor = None,
         attention_mask: Optional[torch.Tensor] = None,
         position_ids: Optional[torch.LongTensor] = None,
-        past_key_values: Optional[Union[Cache, List[torch.FloatTensor]]] = None,
+        past_key_values: Optional[Union[Cache,
+                                        List[torch.FloatTensor]]] = None,
         inputs_embeds: Optional[torch.FloatTensor] = None,
         labels: Optional[torch.LongTensor] = None,
         use_cache: Optional[bool] = None,
@@ -1381,7 +1399,8 @@ class LlamaForCausalLM(LlamaPreTrainedModel):
         if self.R1 is not None:
             dtype = hidden_states.dtype
             hidden_states = (
-                hidden_states.to(torch.float64) @ self.R1.weight.T.to(torch.float64)
+                hidden_states.to(
+                    torch.float64) @ self.R1.weight.T.to(torch.float64)
             ).to(dtype)
 
         if self.config.pretraining_tp > 1:
@@ -1400,7 +1419,8 @@ class LlamaForCausalLM(LlamaPreTrainedModel):
                 )
             # Only compute necessary logits, and do not upcast them to float if we are not computing the loss
             # TODO: remove the float() operation in v4.46
-            logits = self.lm_head(hidden_states[:, -num_logits_to_keep:, :]).float()
+            logits = self.lm_head(
+                hidden_states[:, -num_logits_to_keep:, :]).float()
 
         loss = None
         if labels is not None:
@@ -1446,7 +1466,7 @@ class LlamaForCausalLM(LlamaPreTrainedModel):
         # Exception 2: some generation methods do special slicing of input_ids, so we don't need to do it here
         if past_key_values is not None:
             if inputs_embeds is not None:  # Exception 1
-                input_ids = input_ids[:, -cache_position.shape[0] :]
+                input_ids = input_ids[:, -cache_position.shape[0]:]
             elif (
                 input_ids.shape[1] != cache_position.shape[0]
             ):  # Default case (the "else", a no op, is Exception 2)
@@ -1457,10 +1477,11 @@ class LlamaForCausalLM(LlamaPreTrainedModel):
             position_ids = attention_mask.long().cumsum(-1) - 1
             position_ids.masked_fill_(attention_mask == 0, 1)
             if past_key_values:
-                position_ids = position_ids[:, -input_ids.shape[1] :]
+                position_ids = position_ids[:, -input_ids.shape[1]:]
 
                 # This `clone` call is needed to avoid recapturing cuda graphs with `torch.compile`'s  `mode="reduce-overhead`, as otherwise the input `position_ids` would have various stride during the decoding. Here, simply using `.contiguous()` is not sufficient as in the batch size = 1 case, `position_ids` is already contiguous but with varying stride which retriggers a capture.
-                position_ids = position_ids.clone(memory_format=torch.contiguous_format)
+                position_ids = position_ids.clone(
+                    memory_format=torch.contiguous_format)
 
         # if `inputs_embeds` are passed, we only want to use them in the 1st generation step
         if inputs_embeds is not None and cache_position[0] == 0:
@@ -1546,7 +1567,8 @@ class LlamaForSequenceClassification(LlamaPreTrainedModel):
         input_ids: Optional[torch.LongTensor] = None,
         attention_mask: Optional[torch.Tensor] = None,
         position_ids: Optional[torch.LongTensor] = None,
-        past_key_values: Optional[Union[Cache, List[torch.FloatTensor]]] = None,
+        past_key_values: Optional[Union[Cache,
+                                        List[torch.FloatTensor]]] = None,
         inputs_embeds: Optional[torch.FloatTensor] = None,
         labels: Optional[torch.LongTensor] = None,
         use_cache: Optional[bool] = None,
@@ -1593,7 +1615,8 @@ class LlamaForSequenceClassification(LlamaPreTrainedModel):
             if input_ids is not None:
                 # if no pad token found, use modulo instead of reverse indexing for ONNX compatibility
                 sequence_lengths = (
-                    torch.eq(input_ids, self.config.pad_token_id).int().argmax(-1) - 1
+                    torch.eq(
+                        input_ids, self.config.pad_token_id).int().argmax(-1) - 1
                 )
                 sequence_lengths = sequence_lengths % input_ids.shape[-1]
                 sequence_lengths = sequence_lengths.to(logits.device)
@@ -1675,7 +1698,8 @@ class LlamaForQuestionAnswering(LlamaPreTrainedModel):
         input_ids: Optional[torch.LongTensor] = None,
         attention_mask: Optional[torch.FloatTensor] = None,
         position_ids: Optional[torch.LongTensor] = None,
-        past_key_values: Optional[Union[Cache, List[torch.FloatTensor]]] = None,
+        past_key_values: Optional[Union[Cache,
+                                        List[torch.FloatTensor]]] = None,
         inputs_embeds: Optional[torch.FloatTensor] = None,
         start_positions: Optional[torch.LongTensor] = None,
         end_positions: Optional[torch.LongTensor] = None,
@@ -1719,7 +1743,8 @@ class LlamaForQuestionAnswering(LlamaPreTrainedModel):
         if start_positions is not None and end_positions is not None:
             # If we are on multi-GPU, split add a dimension
             if len(start_positions.size()) > 1:
-                start_positions = start_positions.squeeze(-1).to(start_logits.device)
+                start_positions = start_positions.squeeze(
+                    -1).to(start_logits.device)
             if len(end_positions.size()) > 1:
                 end_positions = end_positions.squeeze(-1).to(end_logits.device)
             # sometimes the start/end positions are outside our model inputs, we ignore these terms

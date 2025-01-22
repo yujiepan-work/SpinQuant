@@ -45,6 +45,7 @@ def add_wrapper_after_function_call_in_method(
     method_globals = dict(original_method.__globals__)
     wrapper = wrapper_fn(method_globals[function_name])
     method_globals[function_name] = wrapper
-    new_method = copy_func_with_new_globals(original_method, globals=method_globals)
+    new_method = copy_func_with_new_globals(
+        original_method, globals=method_globals)
     setattr(module, method_name, new_method.__get__(module))
     return wrapper

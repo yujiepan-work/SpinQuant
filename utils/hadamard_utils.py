@@ -89,7 +89,8 @@ def matmul_hadU(X, transpose=False):
     input = X.clone().view(-1, n, 1)
     output = input.clone()
     while input.shape[1] > K:
-        input = input.view(input.shape[0], input.shape[1] // 2, 2, input.shape[2])
+        input = input.view(
+            input.shape[0], input.shape[1] // 2, 2, input.shape[2])
         output = output.view(input.shape)
         output[:, :, 0, :] = input[:, :, 0, :] + input[:, :, 1, :]
         output[:, :, 1, :] = input[:, :, 0, :] - input[:, :, 1, :]
@@ -132,7 +133,8 @@ def matmul_hadU_cuda(X, hadK, K):
     # if transpose:
     #     hadK = hadK.T.contiguous()
     input = X.view(-1, K, n // K)
-    input = HadamardTransform.apply(input.contiguous()) / torch.tensor(n).sqrt()
+    input = HadamardTransform.apply(
+        input.contiguous()) / torch.tensor(n).sqrt()
     input = hadK.to(input.device).to(input.dtype) @ input
     return input.reshape(X.shape)
 

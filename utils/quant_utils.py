@@ -149,8 +149,10 @@ class ActQuantizer(torch.nn.Module):
             self.scale = (xmax - xmin) / self.maxq
             self.zero = torch.round(-xmin / self.scale)
 
-        self.scale = self.scale.repeat(1, 1, 1, self.groupsize).reshape(init_shape)
-        self.zero = self.zero.repeat(1, 1, 1, self.groupsize).reshape(init_shape)
+        self.scale = self.scale.repeat(
+            1, 1, 1, self.groupsize).reshape(init_shape)
+        self.zero = self.zero.repeat(
+            1, 1, 1, self.groupsize).reshape(init_shape)
 
     def find_params(self, x) -> None:
         if self.bits == 16:
@@ -175,7 +177,8 @@ class ActQuantizer(torch.nn.Module):
         if self.sym:
             xmax = torch.maximum(torch.abs(xmin), xmax)
             tmp = xmax == 0
-            self.scale = (xmax / self.maxq).unsqueeze(1).repeat(1, reshaped_x.shape[-1])
+            self.scale = (xmax / self.maxq).unsqueeze(1).repeat(1,
+                                                                reshaped_x.shape[-1])
             self.scale[tmp] = 1
             self.scale = self.scale.reshape(init_shape)
             self.zero = torch.zeros_like(self.scale)
@@ -474,7 +477,8 @@ class WeightQuantizer(torch.nn.Module):
         x_dtype = x.dtype
         if self.ready() and self.bits < 16:
             scale = self.scale.to(x.device)
-            q = torch.clamp(torch.round(x / scale), -(self.maxq + 1), self.maxq)
+            q = torch.clamp(torch.round(x / scale), -
+                            (self.maxq + 1), self.maxq)
             return (scale * q).to(x_dtype), q, scale
         else:
             return None, None, None
@@ -519,7 +523,8 @@ def add_actquant(
                     replaced.append(child)
             setattr(module, attr, torch.nn.ModuleList(replaced))
     for name1, child in module.named_children():
-        add_actquant(child, name + "." + name1 if name != "" else name1, layers)
+        add_actquant(child, name + "." + name1 if name !=
+                     "" else name1, layers)
 
 
 def find_qlayers(

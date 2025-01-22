@@ -30,7 +30,8 @@ log: Logger = get_logger("spinquant")
 class RotateModule(nn.Module):
     def __init__(self, R_init):
         super(RotateModule, self).__init__()
-        self.weight = nn.Parameter(R_init.to(torch.float32).to(torch.device("cuda")))
+        self.weight = nn.Parameter(
+            R_init.to(torch.float32).to(torch.device("cuda")))
 
     def forward(self, x, transpose=False):
         if transpose:
@@ -40,7 +41,8 @@ class RotateModule(nn.Module):
 
 
 def train() -> None:
-    dist.init_process_group(backend="nccl", timeout=datetime.timedelta(hours=8))
+    dist.init_process_group(
+        backend="nccl", timeout=datetime.timedelta(hours=8))
     model_args, training_args, ptq_args = process_args_ptq()
     local_rank = get_local_rank()
 
@@ -106,7 +108,8 @@ def train() -> None:
         for i in range(model.config.num_hidden_layers)
     ]
     model.seqlen = training_args.model_max_length
-    optimizer = SGDG(trainable_parameters, lr=training_args.learning_rate, stiefel=True)
+    optimizer = SGDG(trainable_parameters,
+                     lr=training_args.learning_rate, stiefel=True)
     MyTrainer = Trainer
     # Use FSDP for 70B rotation training
     if training_args.fsdp != "" and training_args.fsdp != []:

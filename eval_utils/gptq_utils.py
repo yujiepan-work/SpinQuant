@@ -74,7 +74,7 @@ class GPTQ:
             groups = []
             for i in range(0, self.columns, groupsize):
                 quantizer = copy.deepcopy(self.quantizer)
-                quantizer.find_params(W[:, i : (i + groupsize)])
+                quantizer.find_params(W[:, i: (i + groupsize)])
                 groups.append(quantizer)
 
         if actorder:
@@ -114,7 +114,7 @@ class GPTQ:
                     if not static_groups:
                         if (i1 + i) % groupsize == 0:
                             self.quantizer.find_params(
-                                W[:, (i1 + i) : (i1 + i + groupsize)]
+                                W[:, (i1 + i): (i1 + i + groupsize)]
                             )
                     else:
                         idx = i1 + i
@@ -122,7 +122,8 @@ class GPTQ:
                             idx = perm[idx]
                         self.quantizer = groups[idx // groupsize]
 
-                q, int_weight, scale = self.quantizer.fake_quantize(w.unsqueeze(1))
+                q, int_weight, scale = self.quantizer.fake_quantize(
+                    w.unsqueeze(1))
                 Q1[:, i] = q.flatten()
                 q = q.flatten()
                 W_int1[:, i] = int_weight.flatten()
@@ -131,7 +132,8 @@ class GPTQ:
                 Losses1[:, i] = (w - q) ** 2 / d**2
 
                 err1 = (w - q) / d
-                W1[:, i:] -= err1.unsqueeze(1).matmul(Hinv1[i, i:].unsqueeze(0))
+                W1[:,
+                    i:] -= err1.unsqueeze(1).matmul(Hinv1[i, i:].unsqueeze(0))
                 Err1[:, i] = err1
 
             Q[:, i1:i2] = Q1
@@ -265,7 +267,8 @@ def gptq_fwrd(model, dataloader, dev, args):
 
             handles = []
             for name in subset:
-                handles.append(subset[name].register_forward_hook(add_batch(name)))
+                handles.append(
+                    subset[name].register_forward_hook(add_batch(name)))
             for j in range(args.nsamples):
                 outs[j] = layer(
                     inps[j].unsqueeze(0),
@@ -284,7 +287,8 @@ def gptq_fwrd(model, dataloader, dev, args):
                     static_groups=False,
                     export_to_et=args.export_to_et,
                 )
-                quantizers["model.layers.%d.%s" % (i, name)] = gptq[name].quantizer
+                quantizers["model.layers.%d.%s" %
+                           (i, name)] = gptq[name].quantizer
                 gptq[name].free()
 
         for j in range(args.nsamples):
@@ -350,7 +354,8 @@ def rtn_fwrd(model, dev, args, custom_layers=None):
             W = subset[name].weight.data
             quantizer.find_params(W)
             q, int_weight, scale = quantizer.fake_quantize(W)
-            subset[name].weight.data = q.to(next(iter(layer.parameters())).dtype)
+            subset[name].weight.data = q.to(
+                next(iter(layer.parameters())).dtype)
             if args.export_to_et:
                 subset[name].register_buffer("int_weight", int_weight)
                 subset[name].register_buffer("scale", scale)

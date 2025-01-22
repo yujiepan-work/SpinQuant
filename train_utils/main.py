@@ -38,7 +38,8 @@ def prepare_model(args, model):
 
     # Add Input Quantization
     if args.a_bits < 16 or args.v_bits < 16:
-        qlayers = quant_utils.find_qlayers(model, layers=[quant_utils.ActQuantWrapper])
+        qlayers = quant_utils.find_qlayers(
+            model, layers=[quant_utils.ActQuantWrapper])
         down_proj_groupsize = -1
         if args.a_groupsize > 0:
             down_proj_groupsize = utils.llama_down_proj_groupsize(
@@ -84,7 +85,8 @@ def prepare_model(args, model):
 
     if args.k_bits < 16:
         if args.k_pre_rope:
-            raise NotImplementedError("Pre-RoPE quantization is not supported yet!")
+            raise NotImplementedError(
+                "Pre-RoPE quantization is not supported yet!")
         else:
             rope_function_name = "apply_rotary_pos_emb"
             layers = model.model.layers

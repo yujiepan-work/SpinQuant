@@ -42,7 +42,8 @@ def fuse_layer_norms(model):
     # Embedding fusion
     for W in [model.model.embed_tokens]:
         W_ = W.weight.data.double()
-        W.weight.data = (W_ - W_.mean(dim=-1, keepdim=True)).to(W.weight.data.dtype)
+        W.weight.data = (W_ - W_.mean(dim=-1, keepdim=True)
+                         ).to(W.weight.data.dtype)
 
     layers = [layer for layer in model.model.layers]
 
@@ -50,7 +51,8 @@ def fuse_layer_norms(model):
     for layer in layers:
         # fuse the input layernorms into the linear layers
         fuse_ln_linear(
-            layer.post_attention_layernorm, [layer.mlp.up_proj, layer.mlp.gate_proj]
+            layer.post_attention_layernorm, [
+                layer.mlp.up_proj, layer.mlp.gate_proj]
         )
         fuse_ln_linear(
             layer.input_layernorm,

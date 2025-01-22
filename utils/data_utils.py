@@ -18,7 +18,8 @@ import transformers
 
 def get_wikitext2(nsamples=128, seed=0, seqlen=2048, model="", tokenizer=None, eval_mode=False):
     if tokenizer is None:
-        tokenizer = transformers.AutoTokenizer.from_pretrained(model, use_fast=False)
+        tokenizer = transformers.AutoTokenizer.from_pretrained(
+            model, use_fast=False)
 
     if eval_mode:
         testdata = datasets.load_dataset("Salesforce/wikitext", "wikitext-2-raw-v1")[
@@ -30,7 +31,8 @@ def get_wikitext2(nsamples=128, seed=0, seqlen=2048, model="", tokenizer=None, e
         traindata = datasets.load_dataset("Salesforce/wikitext", "wikitext-2-raw-v1")[
             "train"
         ]
-        trainenc = tokenizer("\n\n".join(traindata["text"]), return_tensors="pt")
+        trainenc = tokenizer("\n\n".join(
+            traindata["text"]), return_tensors="pt")
         random.seed(seed)
         trainloader = []
         for _ in range(nsamples):
@@ -94,7 +96,7 @@ class CustomJsonDataset(torch.utils.data.IterableDataset):
         # Split by chunks of max_len.
         result = {
             k: [
-                t[i : i + self.block_size]
+                t[i: i + self.block_size]
                 for i in range(0, total_length, self.block_size)
             ]
             for k, t in concatenated_examples.items()

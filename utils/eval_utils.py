@@ -33,11 +33,13 @@ def evaluator(model, testenc, dev, args):
     input_ids = testenc.input_ids  # (1, text_len)
     nsamples = input_ids.numel() // model.seqlen  # The tail is truncated.
     input_ids = (
-        input_ids[:, : nsamples * model.seqlen].view(nsamples, model.seqlen).to(dev)
+        input_ids[:, : nsamples *
+                  model.seqlen].view(nsamples, model.seqlen).to(dev)
     )  # (nsamples, seqlen)
 
     batch_size = args.bsz
-    input_ids = [input_ids[i : i + batch_size] for i in range(0, nsamples, batch_size)]
+    input_ids = [input_ids[i: i + batch_size]
+                 for i in range(0, nsamples, batch_size)]
     nbatches = len(input_ids)
 
     dtype = next(iter(model.parameters())).dtype

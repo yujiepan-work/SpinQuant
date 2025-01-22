@@ -104,7 +104,8 @@ if is_sagemaker_mp_enabled():
     import smdistributed.modelparallel.torch as smp
     from smdistributed.modelparallel import __version__ as SMP_VERSION
 
-    IS_SAGEMAKER_MP_POST_1_10 = version.parse(SMP_VERSION) >= version.parse("1.10")
+    IS_SAGEMAKER_MP_POST_1_10 = version.parse(
+        SMP_VERSION) >= version.parse("1.10")
 
 else:
     IS_SAGEMAKER_MP_POST_1_10 = False
@@ -199,7 +200,8 @@ class FSDPTrainer(Trainer):
         self.create_accelerator_and_postprocess()
 
         # memory metrics - must set up as early as possible
-        self._memory_tracker = TrainerMemoryTracker(self.args.skip_memory_metrics)
+        self._memory_tracker = TrainerMemoryTracker(
+            self.args.skip_memory_metrics)
         self._memory_tracker.start()
 
         # set the correct log level depending on the node
@@ -251,7 +253,8 @@ class FSDPTrainer(Trainer):
             if len(devices) > 1:
                 self.is_model_parallel = True
             elif len(devices) == 1:
-                self.is_model_parallel = self.args.device != torch.device(devices[0])
+                self.is_model_parallel = self.args.device != torch.device(
+                    devices[0])
             else:
                 self.is_model_parallel = False
 
@@ -302,7 +305,8 @@ class FSDPTrainer(Trainer):
                 not args.fsdp_config["xla"]
                 and args.parallel_mode != ParallelMode.DISTRIBUTED
             ):
-                raise ValueError("Using fsdp only works in distributed training.")
+                raise ValueError(
+                    "Using fsdp only works in distributed training.")
 
         # one place to sort out whether to place the model on device or not
         # postpone switching model to cuda when:
@@ -484,7 +488,8 @@ class FSDPTrainer(Trainer):
                         )
                 else:
                     args.half_precision_backend = "cpu_amp"
-            logger.info(f"Using {args.half_precision_backend} half precision backend")
+            logger.info(
+                f"Using {args.half_precision_backend} half precision backend")
 
         if (args.fp16 or args.bf16) and not (
             self.is_deepspeed_enabled or is_sagemaker_mp_enabled()
@@ -544,9 +549,11 @@ class FSDPTrainer(Trainer):
 
         # torch.compile
         if args.torch_compile and not is_torch_compile_available():
-            raise RuntimeError("Using torch.compile requires PyTorch 2.0 or higher.")
+            raise RuntimeError(
+                "Using torch.compile requires PyTorch 2.0 or higher.")
 
-        self.is_fsdp_xla_v2_enabled = args.fsdp_config.get("xla_fsdp_v2", False)
+        self.is_fsdp_xla_v2_enabled = args.fsdp_config.get(
+            "xla_fsdp_v2", False)
         if self.is_fsdp_xla_v2_enabled:
             if not IS_XLA_FSDPV2_POST_2_2:
                 raise ValueError("FSDPv2 requires `torch_xla` 2.2 or higher.")

@@ -106,7 +106,8 @@ class SGDG(Optimizer):
             grad_clip=grad_clip,
         )
         if nesterov and (momentum <= 0 or dampening != 0):
-            raise ValueError("Nesterov momentum requires a momentum and zero dampening")
+            raise ValueError(
+                "Nesterov momentum requires a momentum and zero dampening")
         super(SGDG, self).__init__(params, defaults)
 
     def __setstate__(self, state) -> None:
@@ -149,7 +150,8 @@ class SGDG(Optimizer):
 
                     param_state = self.state[p]
                     if "momentum_buffer" not in param_state:
-                        param_state["momentum_buffer"] = torch.zeros(g.t().size())
+                        param_state["momentum_buffer"] = torch.zeros(
+                            g.t().size())
                         if p.is_cuda:
                             param_state["momentum_buffer"] = param_state[
                                 "momentum_buffer"

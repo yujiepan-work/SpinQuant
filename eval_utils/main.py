@@ -33,7 +33,8 @@ def ptq_model(args, model, model_args=None):
         qlayers = quant_utils.find_qlayers(model)
         for name in qlayers:
             if "down_proj" in name:
-                had_K, K = hadamard_utils.get_hadK(model.config.intermediate_size)
+                had_K, K = hadamard_utils.get_hadK(
+                    model.config.intermediate_size)
                 qlayers[name].online_full_had = True
                 qlayers[name].had_K = had_K
                 qlayers[name].K = K
@@ -90,7 +91,8 @@ def ptq_model(args, model, model_args=None):
 
     # Add Input Quantization
     if args.a_bits < 16 or args.v_bits < 16:
-        qlayers = quant_utils.find_qlayers(model, layers=[quant_utils.ActQuantWrapper])
+        qlayers = quant_utils.find_qlayers(
+            model, layers=[quant_utils.ActQuantWrapper])
         down_proj_groupsize = -1
         if args.a_groupsize > 0:
             down_proj_groupsize = utils.llama_down_proj_groupsize(
@@ -136,7 +138,8 @@ def ptq_model(args, model, model_args=None):
 
     if args.k_bits < 16:
         if args.k_pre_rope:
-            raise NotImplementedError("Pre-RoPE quantization is not supported yet!")
+            raise NotImplementedError(
+                "Pre-RoPE quantization is not supported yet!")
         else:
             rope_function_name = "apply_rotary_pos_emb"
             layers = model.model.layers

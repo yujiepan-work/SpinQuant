@@ -45,29 +45,35 @@ def capture_layer_io(layer, layer_input):
     }
 
     for name in captured_inputs.keys():
-        module = getattr(layer.self_attn, name, None) or getattr(layer.mlp, name, None)
+        module = getattr(layer.self_attn, name, None) or getattr(
+            layer.mlp, name, None)
         handles.append(
-            module.register_forward_hook(hook_factory(name, captured_inputs, True))
+            module.register_forward_hook(
+                hook_factory(name, captured_inputs, True))
         )
 
     for name in captured_outputs.keys():
-        module = getattr(layer.self_attn, name, None) or getattr(layer.mlp, name, None)
+        module = getattr(layer.self_attn, name, None) or getattr(
+            layer.mlp, name, None)
         handles.append(
-            module.register_forward_hook(hook_factory(name, captured_outputs, False))
+            module.register_forward_hook(
+                hook_factory(name, captured_outputs, False))
         )
 
     # Process each sequence in the batch one by one to avoid OOM.
     for seq_idx in range(layer_input.shape[0]):
         # Extract the current sequence across all dimensions.
-        seq = layer_input[seq_idx : seq_idx + 1].to("cuda")
+        seq = layer_input[seq_idx: seq_idx + 1].to("cuda")
         # Perform a forward pass for the current sequence.
         layer(seq)
 
     # After processing all sequences, concatenate the accumulated inputs for each sub-layer across the batch.
     for module_name in captured_inputs:
-        captured_inputs[module_name] = torch.cat(captured_inputs[module_name], dim=0)
+        captured_inputs[module_name] = torch.cat(
+            captured_inputs[module_name], dim=0)
     for module_name in captured_outputs:
-        captured_outputs[module_name] = torch.cat(captured_outputs[module_name], dim=0)
+        captured_outputs[module_name] = torch.cat(
+            captured_outputs[module_name], dim=0)
 
     # Cleanup.
     for h in handles:

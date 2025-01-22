@@ -76,8 +76,10 @@ class QKRotationWrapper(torch.nn.Module):
     def forward(self, *args, **kwargs):
         q, k = self.func(*args, **kwargs)
         dtype = q.dtype
-        q = (HadamardTransform.apply(q.float()) / math.sqrt(q.shape[-1])).to(dtype)
-        k = (HadamardTransform.apply(k.float()) / math.sqrt(k.shape[-1])).to(dtype)
+        q = (HadamardTransform.apply(q.float()) /
+             math.sqrt(q.shape[-1])).to(dtype)
+        k = (HadamardTransform.apply(k.float()) /
+             math.sqrt(k.shape[-1])).to(dtype)
         (bsz, num_heads, seq_len, head_dim) = k.shape
 
         if self.k_groupsize == -1:  # token-wise quantization

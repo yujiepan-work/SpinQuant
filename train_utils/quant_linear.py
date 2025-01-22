@@ -42,7 +42,8 @@ class QuantizeLinear(nn.Linear):
                 else:
                     W_ = weight.t()
                     transposed_shape = W_.shape
-                    temp = W_.reshape(-1, transposed_shape[-1] // had_dim, had_dim)
+                    temp = W_.reshape(-1,
+                                      transposed_shape[-1] // had_dim, had_dim)
                     temp = temp.to(torch.float64) @ R2.to(torch.float64)
                     weight = temp.reshape(transposed_shape).t()
             weight = weight.to(dtype)

@@ -28,7 +28,8 @@ class ModelArguments:
     )
     access_token: Optional[str] = field(
         default=None,
-        metadata={"help": "Huggingface access token to access gated repo like Llama"},
+        metadata={
+            "help": "Huggingface access token to access gated repo like Llama"},
     )
 
 
@@ -258,7 +259,8 @@ def process_args_ptq():
     ptq_args, unknown_args = parser_gen()
 
     parser = transformers.HfArgumentParser((ModelArguments, TrainingArguments))
-    model_args, training_args = parser.parse_args_into_dataclasses(args=unknown_args)
+    model_args, training_args = parser.parse_args_into_dataclasses(
+        args=unknown_args)
     if model_args.optimized_rotation_path is not None:
         ptq_args.optimized_rotation_path = model_args.optimized_rotation_path
     else:
