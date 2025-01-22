@@ -92,7 +92,7 @@ def run_lm_eval_hf(
     apply_chat_template: bool = False,
     **logging_kwargs: Unpack[_LMEvalLoggingConfig],
 ):
-    device = str(torch.device(device).type)
+    device = str(torch.device(device))
 
     logging_config = HfArgumentParser(LMEvalLoggingConfig).parse_dict(
         logging_kwargs, allow_extra_keys=True
