@@ -1,6 +1,6 @@
 # Fork note:
 
-- Install the env as explain below.
+- Install the env as explain below. I am using python=3.11, torch=2.4.1
 - `pip install lm-eval` (e.g., 0.4.7)
 - `scripts/yujie_1_optimize_rotation.bash` (~1 hr)
 - `scripts/yujie_2_eval.sh`
